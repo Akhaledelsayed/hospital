@@ -161,6 +161,8 @@ if (!$hasAccess) {
 			'company_contact', 'company_tel', 'hospital_code','device_safety_test'
 		];
 
+
+		
 		foreach ($fields as $field) {
 			$$field = clean($_POST[$field] ?? '');
 		}
