@@ -268,6 +268,75 @@
         const statusGroup = checkbox.parentElement.parentElement;
         statusGroup.setAttribute('data-value', checkbox.checked ? checkbox.value : '');
     }
+    function updateTableDataValue(radio) {
+    // تحديث data-value للخلية المحددة
+    const row = radio.parentElement.parentElement;
+    const cells = row.querySelectorAll('td[data-value]');
+    cells.forEach(cell => cell.setAttribute('data-value', ''));
+    radio.parentElement.setAttribute('data-value', radio.value);
+
+    updateOverallStatus();
+}
+
+function updateOverallStatus() {
+    // نجمع كل القيم المختارة في الجدول (Pass أو Fail)
+    const taskNames = ['task1','task2','task3','task4','task5','task6','task7','task8','task9','task10'];
+    const results = [];
+
+    for (const taskName of taskNames) {
+        const radios = document.querySelectorAll(`input[name="${taskName}"]`);
+        let selected = null;
+        radios.forEach(radio => {
+            if (radio.checked) selected = radio.value;
+        });
+        if (selected) results.push(selected);
+    }
+
+    // إذا ما فيش اختيارات، نترك الحالة فارغة
+    if (results.length === 0) {
+        setStatus('');
+        return;
+    }
+
+    // نحسب عدد Pass و Fail
+    const passCount = results.filter(r => r === 'Pass').length;
+    const failCount = results.filter(r => r === 'Fail').length;
+
+    // طبق شروطك:
+
+    if (results.length === 1) {
+        // اخترتي واحدة فقط
+        if (passCount === 1) setStatus('Passed');
+        else if (failCount === 1) setStatus('Removed from service');
+    } else {
+        // أكتر من اختيار
+        if (passCount === results.length) {
+            // كلهم Pass
+            setStatus('Passed');
+        } else if (failCount === results.length) {
+            // كلهم Fail
+            setStatus('Removed from service');
+        } else if (passCount > 0 && failCount > 0) {
+            // مزيج Pass و Fail
+            setStatus('Service required');
+        } else {
+            // حالة غير محددة
+            setStatus('');
+        }
+    }
+}
+
+function setStatus(value) {
+    const statusGroup = document.querySelector('.status-group');
+    const checkboxes = statusGroup.querySelectorAll('input[type="checkbox"]');
+
+    checkboxes.forEach(cb => {
+        cb.checked = (cb.value.toLowerCase() === value.toLowerCase());
+    });
+
+    statusGroup.setAttribute('data-value', value);
+}
+
 </script>
 
 </body>
