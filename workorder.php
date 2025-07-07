@@ -1,4 +1,4 @@
-<<?php 
+<?php 
 session_start();
 $hospital_code = $_SESSION['current_hospital_code'] ?? null;
 

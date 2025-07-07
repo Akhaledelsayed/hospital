@@ -28,7 +28,7 @@
         .header a {
             color: white;
             text-decoration: none;
-            margin-right: 1000px;
+            margin-right: 1100px;
             
         }
 

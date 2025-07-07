@@ -244,6 +244,8 @@ if (!$hasAccess) {
 </head>
 <body>
     <input type="checkbox" id="checkbox" />
+            <?php include "inc/header.php"; ?>
+
     <div class="body">
         <?php include "inc/nav.php"; ?>
         <section class="section-1">
