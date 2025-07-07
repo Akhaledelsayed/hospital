@@ -107,6 +107,78 @@ if (!$hasAccess) {
       box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
     }
 
+    .button-grid button.selected {
+      background: linear-gradient(to right, #38a169, #2f855a);
+      transform: scale(1.04);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .select-reports-button {
+      display: block;
+      margin: 20px auto;
+      padding: 14px 24px;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      background: linear-gradient(to right, #ed8936, #d69e2e);
+      transition: all 0.3s ease-in-out;
+    }
+
+    .select-reports-button:hover {
+      background: linear-gradient(to right, #dd6b20, #c05621);
+      transform: scale(1.04);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .select-reports-button.active {
+      background: linear-gradient(to right, #9f7aea, #b794f4);
+      transform: scale(1.04);
+    }
+
+    .print-button {
+      display: none;
+      margin: 20px auto 0;
+      padding: 14px 24px;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      background: linear-gradient(to right, #3182ce, #2b6cb0);
+      transition: all 0.3s ease-in-out;
+    }
+
+    .print-button:hover {
+      background: linear-gradient(to right, #2b6cb0, #2c5282);
+      transform: scale(1.04);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .print-button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .error-message {
+      color: red;
+      text-align: center;
+      margin-top: 10px;
+      display: none;
+    }
+
+    .loading-message {
+      color: #3182ce;
+      text-align: center;
+      margin-top: 10px;
+      display: none;
+    }
+
     @media (max-width: 600px) {
       .main-content {
         padding: 20px;
@@ -114,6 +186,12 @@ if (!$hasAccess) {
 
       .button-grid {
         grid-template-columns: 1fr;
+      }
+
+      .select-reports-button,
+      .print-button {
+        width: 100%;
+        padding: 12px;
       }
     }
   </style>
@@ -125,50 +203,179 @@ if (!$hasAccess) {
   <div class="body">
     <?php include "inc/nav.php"; ?>
     <section class="section-1">
-
       <div class="main-content">
         <h1>Biomedical Report Dashboard</h1>
 
         <form id="reportForm" method="GET" target="_blank">
-          <!-- تاريخ البداية -->
+          <!-- Start Date -->
           <div class="input-holder">
             <label for="start_date">Start Date</label>
             <input type="date" name="start_date" id="start_date" required>
           </div>
 
-          <!-- تاريخ النهاية -->
+          <!-- End Date -->
           <div class="input-holder">
             <label for="end_date">End Date</label>
             <input type="date" name="end_date" id="end_date" required>
           </div>
 
-          <!-- المستشفى -->
+          <!-- Hospital Code -->
           <input type="hidden" name="hospital_code" value="<?= htmlspecialchars($hospital_code) ?>">
 
+          <!-- Select Reports Button -->
+          <button type="button" class="select-reports-button" id="selectReportsButton">Select Reports</button>
 
-          <!-- الأزرار -->
+          <!-- Button Grid -->
           <div class="button-grid">
-            <button type="button" onclick="submitTo('workorder_forhospital_report.php')">Work Orders by Hospital</button>
-            <button type="button" onclick="submitTo('workorder_perdepartment_report.php')">Work Orders by Department</button>
-            <button type="button" onclick="submitTo('down_time_report.php')">Down Time</button>
-            <button type="button" onclick="submitTo('new_devices_report.php')">NEW DEVICES</button>
-            <button type="button" onclick="submitTo('purchasing_order_report.php')">Purchasing Order </button>
-            <button type="button" onclick="submitTo('calibration_report.php')">PM vs All</button>
-            <button type="button" onclick="submitTo('grouped_equipment_report.php')">Grouped by Model</button>
-            <button type="button" onclick="submitTo('by_employee_report.php')">By Employees</button>
-            <button type="button" onclick="submitTo('repair_count_report.php')">Repair Count</button>
+            <button type="button" data-url="workorder_forhospital_report.php">Work Orders by Hospital</button>
+            <button type="button" data-url="workorder_perdepartment_report.php">Work Orders by Department</button>
+            <button type="button" data-url="down_time_report.php">Down Time</button>
+            <button type="button" data-url="new_devices_report.php">NEW DEVICES</button>
+            <button type="button" data-url="purchasing_order_report.php">Purchasing Order</button>
+            <button type="button" data-url="calibration_report.php">PM vs All</button>
+            <button type="button" data-url="grouped_equipment_report.php">Grouped by Model</button>
+            <button type="button" data-url="by_employee_report.php">By Employees</button>
+            <button type="button" data-url="repair_count_report.php">Repair Count</button>
           </div>
+
+          <!-- Print Button -->
+          <button type="button" class="print-button" id="printButton" disabled>Print Selected Reports</button>
+          <div class="error-message" id="errorMessage">Please select at least one report to print.</div>
+          <div class="loading-message" id="loadingMessage">Opening reports for printing, please wait...</div>
         </form>
 
         <script>
-          function submitTo(actionUrl) {
-            const form = document.getElementById('reportForm');
-            form.action = actionUrl;
-            form.submit();
-          }
+          let isSelectionMode = false;
+          let selectedUrls = [];
+
+          // Handle Select Reports button
+          const selectReportsButton = document.getElementById('selectReportsButton');
+          const printButton = document.getElementById('printButton');
+          const loadingMessage = document.getElementById('loadingMessage');
+          const errorMessage = document.getElementById('errorMessage');
+
+          selectReportsButton.addEventListener('click', function () {
+            isSelectionMode = !isSelectionMode;
+            this.classList.toggle('active', isSelectionMode);
+            this.textContent = isSelectionMode ? 'Cancel Selection' : 'Select Reports';
+            printButton.style.display = isSelectionMode ? 'block' : 'none';
+            printButton.disabled = selectedUrls.length === 0;
+            errorMessage.style.display = 'none';
+            loadingMessage.style.display = 'none';
+
+            // Clear selections when exiting selection mode
+            if (!isSelectionMode) {
+              document.querySelectorAll('.button-grid button').forEach(button => {
+                button.classList.remove('selected');
+              });
+              selectedUrls = [];
+            }
+          });
+
+          // Handle button grid clicks
+          document.querySelectorAll('.button-grid button').forEach(button => {
+            button.addEventListener('click', function () {
+              const url = this.getAttribute('data-url');
+              if (isSelectionMode) {
+                // Selection mode: toggle selection
+                if (this.classList.contains('selected')) {
+                  this.classList.remove('selected');
+                  selectedUrls = selectedUrls.filter(u => u !== url);
+                } else {
+                  this.classList.add('selected');
+                  if (!selectedUrls.includes(url)) {
+                    selectedUrls.push(url);
+                  }
+                }
+                printButton.disabled = selectedUrls.length === 0;
+                errorMessage.style.display = 'none';
+                loadingMessage.style.display = 'none';
+              } else {
+                // Default mode: submit form to open report
+                const form = document.getElementById('reportForm');
+                form.action = url;
+                form.submit();
+              }
+            });
+          });
+
+          // Handle print button click
+          printButton.addEventListener('click', async function () {
+            if (selectedUrls.length === 0) {
+              errorMessage.style.display = 'block';
+              loadingMessage.style.display = 'none';
+              return;
+            }
+
+            const startDate = document.getElementById('start_date').value;
+            const endDate = document.getElementById('end_date').value;
+
+            if (!startDate || !endDate) {
+              alert('Please select both start and end dates.');
+              loadingMessage.style.display = 'none';
+              return;
+            }
+
+            // Show loading message and disable print button
+            loadingMessage.style.display = 'block';
+            errorMessage.style.display = 'none';
+            printButton.disabled = true;
+
+            // Maintain order of buttons as they appear in the DOM
+            const buttonUrls = Array.from(document.querySelectorAll('.button-grid button'))
+              .map(button => button.getAttribute('data-url'));
+            const orderedSelectedUrls = buttonUrls.filter(url => selectedUrls.includes(url));
+
+            // Construct query string
+            const queryString = `?start_date=${encodeURIComponent(startDate)}&end_date=${encodeURIComponent(endDate)}&hospital_code=${encodeURIComponent('<?= htmlspecialchars($hospital_code) ?>')}`;
+
+            // Function to open and print a single report
+            const printReport = async (url) => {
+              return new Promise(resolve => {
+                const printWindow = window.open(url + queryString, '_blank');
+                if (!printWindow) {
+                  console.error('Failed to open window for:', url);
+                  resolve(); // Continue even if window fails
+                  return;
+                }
+                let printTriggered = false;
+                printWindow.onload = () => {
+                  try {
+                    printWindow.print();
+                    printTriggered = true;
+                    setTimeout(() => resolve(), 1000); // Wait briefly after print
+                  } catch (e) {
+                    console.error('Print error for:', url, e);
+                    resolve();
+                  }
+                };
+                // Fallback if onload doesn't fire
+                setTimeout(() => {
+                  if (!printTriggered) {
+                    try {
+                      printWindow.print();
+                    } catch (e) {
+                      console.error('Fallback print error for:', url, e);
+                    }
+                    resolve();
+                  }
+                }, 3000);
+              });
+            };
+
+            // Print all selected reports in order
+            for (const url of orderedSelectedUrls) {
+              await printReport(url);
+              // Additional delay to prevent browser overload
+              await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+
+            // Reset UI
+            loadingMessage.style.display = 'none';
+            printButton.disabled = selectedUrls.length === 0;
+          });
         </script>
       </div>
-
     </section>
   </div>
 </body>
