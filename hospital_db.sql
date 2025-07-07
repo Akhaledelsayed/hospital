@@ -405,6 +405,16 @@ insert into preventive_maintenance_plan (device_name, quantity, num_of_pm, total
 ('Patient Bed inpaient',33,1,33,0,0,0,0,0,0,0,0,1,0,0,0,1,3),
 ('Surgical pendant',4,1,4,0,0,0,0,0,0,0,0,0,0,0,1,1,3),
 ('Patient Bed icu',13,1,13,0,0,0,0,0,0,0,0,0,0,1,0,1,3),
+('Autoclave 200L',2,2,4,1,0,0,0,0,0,1,0,0,0,0,0,1,3),
+('surgical light LED',4,1,4,0,0,0,0,0,0,0,0,0,0,0,1,1,3),
+('HVAC Laminar Flow',2,4,8,1,0,0,1,0,0,1,0,0,1,0,0,1,3),
+('HVAC Hepa filter',4,4,16,1,0,0,1,0,0,1,0,0,1,0,0,1,3),
+('Dental Unit',3,1,3,0,1,0,0,0,0,0,0,0,0,0,0,1,3),
+('Light cure',3,1,3,0,1,0,0,0,0,0,0,0,0,0,0,1,3),
+('dental Suction Unit',3,1,3,0,1,0,0,0,0,0,0,0,0,0,0,1,3),
+('Air Comperosser',2,1,2,0,1,0,0,0,0,0,0,0,0,0,0,1,3),
+('Diffebrilator',9,4,36,0,0,1,0,0,1,0,0,1,0,0,1,1,3);
+
 
 
 
