@@ -120,5 +120,6 @@ $devices = get_new_devices_between_dates($conn, $hospital_code, $from_date, $to_
             <p style="text-align:center; color:red;">لا توجد أجهزة مضافة في الفترة المحددة.</p>
         <?php endif; ?>
     </div>
+    
 </body>
 </html>

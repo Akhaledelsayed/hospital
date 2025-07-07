@@ -58,6 +58,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['employee'], $_GET['star
   <link rel="stylesheet" href="css/style.css">
   <style>
     body { font-family: Arial, sans-serif; background: #f9f9f9; padding: 20px; direction: rtl; }
+    
+.header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            width: 150px;
+            height: 70px;
+            object-fit: contain;
+        }
     .container { background: #fff; padding: 30px; border-radius: 10px; max-width: 1000px; margin: auto; box-shadow: 0 8px 30px rgba(0,0,0,0.1);}
     h2 { text-align: center; margin-bottom: 20px; }
     form { margin-bottom: 30px; }
@@ -71,6 +82,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['employee'], $_GET['star
   </style>
 </head>
 <body>
+  
+<div class="header">
+    <div>
+        <input type="file" accept="image/*" onchange="previewLogo(this, 'logo1')">
+        <img src="logo1.png" id="logo1" class="logo" alt="Logo 1">
+    </div>
+    <h2>PM Checked Certificate</h2>
+    <div>
+        <input type="file" accept="image/*" onchange="previewLogo(this, 'logo2')">
+        <img src="logo2.png" id="logo2" class="logo" alt="Logo 2">
+    </div>
+</div>
   <div class="container">
     <h2>تقرير أداء الموظف داخل المستشفى</h2>
     <form method="GET">
@@ -106,5 +129,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['employee'], $_GET['star
       </table>
     <?php endif; ?>
   </div>
+  
+<script>
+  
+    
+    function previewLogo(input, logoId) {
+        const file = input.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                document.getElementById(logoId).src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+</script>
 </body>
 </html>
