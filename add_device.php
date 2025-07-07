@@ -246,7 +246,10 @@ if (!$hasAccess) {
 		}
 		echo "</select></div>";
 
-		input("Room", "room", "text.", true);
+echo '<div class="input-holder">
+        <label for="room">Room *</label>
+        <input type="text" name="room" id="room" class="input-1" required oninput="this.value = this.value.toUpperCase();" />
+      </div>';
 input("Device Name", "device_name", "text", true);
 input("Accessories", "accessories", "text", true);
 		echo "<div class='input-holder'>

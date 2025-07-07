@@ -8,9 +8,12 @@
 .body {
 	display: flex;
 }
-
-
-.side-bar ul {
+.side-bar{
+    background-color: #1c1b1b !important;
+    direction: ltr;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+	.side-bar ul {
 	margin-top: 20px;
 	list-style: none;
 }
@@ -26,16 +29,22 @@
 .side-bar ul li:hover {
 	background: #127b8e;
 }
+.side-bar {
+    background-color: #333;
+    color: white;
+    height: 100vh;
+    width: 250px; /* أو العرض المناسب */
+}
 
 .side-bar ul li a {
-	text-decoration: none;
-	color: #eee;
-	cursor: pointer;
-	letter-spacing: 1px;
+    text-decoration: none;
+    color: white;
 }
+
 .side-bar .active a {
-	color: #127b8e !important;
+    color: #00CF22 !important; /* لون مميز للعناصر النشطة */
 }
+
 .side-bar .active a i {
 	color: #127b8e !important;
 }
