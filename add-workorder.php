@@ -404,6 +404,7 @@ function toggleOtherInput(select) {
         otherInput.value = "";
     }
 }
+   
 
 // Toggle inhouse/outhouse fixed by fields
 function toggleFixFields(select) {
