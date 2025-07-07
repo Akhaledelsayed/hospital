@@ -64,7 +64,7 @@ if (!$hasAccess) {
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>خطط المعايرة الشهرية</title>
+    <title>Monthly Calibrations Plans  </title>
     <link rel="stylesheet" href="css/style.css" />
     <style>
         body { font-family: 'Arial'; background: #f9f9f9; direction: ltr; }
@@ -94,16 +94,16 @@ if (!$hasAccess) {
         <?php include "inc/nav.php"; ?>
         
 <div class="container">
-    <h2 class="title">خطط المعايرة الشهرية - شهر <?= date('F') ?></h2>
+    <h2 class="title">Monthly Calibrations Plans   - Month <?= date('F') ?></h2>
 
     <?php if (isset($_GET['success'])): ?>
-        <p class="success">✅ تم إضافة المعايرة بنجاح!</p>
+        <p class="success"> Add New Calibration Is Done ✅</p>
     <?php endif; ?>
 
     <div class="summary-box">
-        عدد الأجهزة المجدولة: <?= $total_quantity ?> |
-        عدد المعايرات المنفذة: <?= $total_calibrated ?> |
-        المتبقي: <?= $total_remaining ?>
+        The Number Of Devices: <?= $total_quantity ?> |
+        Performed Calibration: <?= $total_calibrated ?> |
+        The Remaining: <?= $total_remaining ?>
     </div>
 
     <?php if ($count > 0): ?>
@@ -111,13 +111,13 @@ if (!$hasAccess) {
             <thead>
                 <tr>
                     <th>#</th>
-                    <th>اسم الجهاز</th>
-                    <th>الكمية الأصلية</th>
-                    <th>عدد المعايرات المنفذة</th>
-                    <th>عدد المتبقي</th>
-                    <th>المجموع الكلي (سنوي)</th>
-                    <th>شهر المعايرة</th>
-                    <th>إجراء</th>
+                    <th> Device Name</th>
+                    <th> Quantity</th>
+                    <th> Performed Calibrations</th>
+                    <th>The Remaining</th>
+                    <th>Total PM</th>
+                    <th>Calibration Month </th>
+                    <th>Procedure</th>
                 </tr>
             </thead>
             <tbody>
@@ -132,17 +132,106 @@ if (!$hasAccess) {
                     <td><?= $plan['calibration_month'] ?></td>
                     <td>
                         <?php if ($plan['remaining'] > 0): ?>
-                            <a class="button" href="add-calibration.php?plan_id=<?= $plan['id'] ?>">إضافة معايرة</a>
-                        <?php else: ?>
-                            <span style="color: gray;">تمت كل المعايرات</span>
+                            <!-- زر لفتح النافذة -->
+                            <button class="button" onclick="openCalibrationModal(<?= $plan['id'] ?>)">Add Calibration </button>
                         <?php endif; ?>
+
+                        <!-- النافذة المنبثقة (Popup Modal) -->
+                        <div id="calibrationModal" class="modal">
+                            <div class="modal-content">
+                                <span class="close" onclick="closeCalibrationModal()">&times;</span>
+                                <h2>Selecte Type Of Calibration </h2>
+                                <p>Please Select If You Nedd Internal Calibtation Or External Calibration</p>
+                                <div class="modal-buttons">
+                                    <button id="internalBtn" class="modal-btn">📌 Internal Calibration</button>
+                                    <button id="externalBtn" class="modal-btn">🌐 External Calibration </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <style>
+                        /* مظهر النافذة المنبثقة */
+                        .modal {
+                            display: none;
+                            position: fixed;
+                            z-index: 9999;
+                            left: 0;
+                            top: 0;
+                            width: 100%;
+                            height: 100%;
+                            overflow: auto;
+                            background-color: rgba(0,0,0,0.5);
+                        }
+
+                        .modal-content {
+                            background-color: #fff;
+                            margin: 10% auto;
+                            padding: 30px;
+                            border-radius: 15px;
+                            width: 90%;
+                            max-width: 400px;
+                            text-align: center;
+                            box-shadow: 0px 0px 15px #333;
+                        }
+
+                        .close {
+                            color: #aaa;
+                            float: right;
+                            font-size: 28px;
+                            font-weight: bold;
+                            cursor: pointer;
+                        }
+
+                        .modal-buttons {
+                            margin-top: 20px;
+                        }
+
+                        .modal-btn {
+                            padding: 10px 20px;
+                            margin: 10px;
+                            border: none;
+                            background-color: #007bff;
+                            color: white;
+                            border-radius: 10px;
+                            cursor: pointer;
+                            font-size: 16px;
+                            transition: background-color 0.3s;
+                        }
+
+                        .modal-btn:hover {
+                            background-color: #0056b3;
+                        }
+                        </style>
+
+                        <script>
+                        let currentPlanId = null;
+
+                        function openCalibrationModal(planId) {
+                            currentPlanId = planId;
+                            document.getElementById("calibrationModal").style.display = "block";
+                        }
+
+                        function closeCalibrationModal() {
+                            document.getElementById("calibrationModal").style.display = "none";
+                        }
+
+                        document.getElementById("internalBtn").addEventListener("click", function() {
+                            window.location.href = "add-calibration.php?plan_id=" + currentPlanId;
+                        });
+
+                        document.getElementById("externalBtn").addEventListener("click", function() {
+                            window.open("external-calibration.php?plan_id=" + currentPlanId, "_blank");
+                        });
+                        </script>
+
+
                     </td>
                 </tr>
                 <?php endforeach; ?>
             </tbody>
         </table>
     <?php else: ?>
-        <p style="color:#888;">لا توجد أجهزة بحاجة للمعايرة هذا الشهر.</p>
+        <p style="color:#888;">There is No Devices Need To calibrated This Month.</p>
     <?php endif; ?>
 </div>
 </body>
