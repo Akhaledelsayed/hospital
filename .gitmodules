@@ -1,0 +1,3 @@
+[submodule "hospital"]
+	path = hospital
+	url = https://github.com/Akhaledelsayed/hospital.git
