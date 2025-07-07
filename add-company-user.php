@@ -5,7 +5,7 @@ if (isset($_SESSION['role']) && isset($_SESSION['id']) && $_SESSION['role'] == "
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	
+
 	<meta charset="UTF-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
 	<title>Add Company</title>
@@ -17,6 +17,9 @@ if (isset($_SESSION['role']) && isset($_SESSION['id']) && $_SESSION['role'] == "
 			background: #f7f9ff;
 			color: #333;
 		}
+
+
+		
 		.section-1 {
 			background: #fff;
 			padding: 30px 40px;
