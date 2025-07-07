@@ -396,6 +396,37 @@ insert into preventive_maintenance_plan (device_name, quantity, num_of_pm, total
 ('Multitalent (opd)',1,1,1,0,0,0,1,0,0,0,0,0,0,0,0,0,2),
 ('DVT',2,1,2,0,0,0,0,0,0,0,0,1,0,0,0,0,2);
 
+insert into preventive_maintenance_plan (device_name, quantity, num_of_pm, total_pm,month_1,month_2,month_3, month_4 ,month_5, month_6, month_7, month_8, month_9, month_10, month_11 , month_12, calibration_month, hospital_code)
+('Drill',2,1,2,0,1,0,0,0,0,0,0,0,0,0,0,1,3),
+('monitor',45,1,45,0,1,0,0,0,0,0,0,0,0,0,0,1,3),
+('Anethesia device',4,2,8,0,0,0,0,0,1,0,0,0,0,0,0,1,3),
+('Anethesia pendant',6,1,6,0,0,0,0,0,0,0,0,0,0,0,1,1,3),
+('Or table',4,1,4,0,0,0,0,0,0,0,0,0,0,0,1,1,3),
+('Patient Bed inpaient',33,1,33,0,0,0,0,0,0,0,0,1,0,0,0,1,3),
+('Surgical pendant',4,1,4,0,0,0,0,0,0,0,0,0,0,0,1,1,3),
+('Patient Bed icu',13,1,13,0,0,0,0,0,0,0,0,0,0,1,0,1,3),
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 INSERT INTO users_inoffice (id, full_name, username, password, role, created_at) VALUES
 (1, 'Dr\ Khaled', 'khaled', '$2y$10$TnyR1Y43m1EIWpb0MiwE8Ocm6rj0F2KojE3PobVfQDo9HYlAHY/7O', 'employee', '2024-08-28 07:10:40'),
