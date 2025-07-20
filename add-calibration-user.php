@@ -157,6 +157,10 @@ if (isset($_SESSION['role']) && isset($_SESSION['id']) && $_SESSION['role'] == "
 		if (active) active.classList.add("active");
 	</script>
 </body>
+<script type="text/javascript">
+		var active = document.querySelector("#navList li:nth-child(7)");
+		if (active) active.classList.add("active");
+	</script>
 </html>
 <?php } else { 
    $em = "First login";
@@ -164,3 +168,4 @@ if (isset($_SESSION['role']) && isset($_SESSION['id']) && $_SESSION['role'] == "
    exit();
 }
 ?>
+

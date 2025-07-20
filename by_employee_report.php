@@ -129,6 +129,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['employee'], $_GET['star
       </table>
     <?php endif; ?>
   </div>
+  <script 
+          type="text/javascript">
+		var active = document.querySelector("#navList li:nth-child(9)");
+		if (active) active.classList.add("active");
+	</script>
+
   
 <script>
   
@@ -144,5 +150,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['employee'], $_GET['star
         }
     }
 </script>
+
 </body>
 </html>

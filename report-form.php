@@ -120,6 +120,9 @@ if (!$hasAccess) {
       </div>
     </form>
   </div>
-
+  <script type="text/javascript">
+		var active = document.querySelector("#navList li:nth-child(9)");
+		if (active) active.classList.add("active");
+	</script>
 </body>
 </html>

@@ -18,6 +18,7 @@ if (!$hospital_code) {
     exit;
 }
 
+
 $from_date = $_GET['from'] ?? date('Y-m-01');
 $to_date = $_GET['to'] ?? date('Y-m-d');
 
@@ -120,6 +121,11 @@ $devices = get_new_devices_between_dates($conn, $hospital_code, $from_date, $to_
             <p style="text-align:center; color:red;">لا توجد أجهزة مضافة في الفترة المحددة.</p>
         <?php endif; ?>
     </div>
-    
+
+    <script type="text/javascript">
+		var active = document.querySelector("#navList li:nth-child(9)");
+		if (active) active.classList.add("active");
+	</script>
+
 </body>
 </html>

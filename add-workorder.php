@@ -468,7 +468,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
 
-
+<script type="text/javascript">
+		var active = document.querySelector("#navList li:nth-child(5)");
+		if (active) active.classList.add("active");
+	</script>
 </body>
 </html>
 <?php

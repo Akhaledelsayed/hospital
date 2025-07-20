@@ -273,6 +273,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['company_name'], $_POS
         }
     }
 </script>
-
+<script type="text/javascript">
+		var active = document.querySelector("#navList li:nth-child(9)");
+		if (active) active.classList.add("active");
+	</script>
 </body>
 </html>

@@ -366,6 +366,10 @@ $devices = get_all_devices($conn, $hospital_code);
             <?php } ?>
         </section>
     </div>
+    <script type="text/javascript">
+		var active = document.querySelector("#navList li:nth-child(2)");
+		if (active) active.classList.add("active");
+	</script>
 </body>
 </html>
 

@@ -1,348 +1,181 @@
+<?php
+session_start();
+include 'DB_connection.php';
+
+$plan_id = $_GET['plan_id'] ?? null;
+if (!$plan_id) die("Plan ID is required.");
+
+// Fetch device name from plan
+$stmt = $conn->prepare("SELECT device_name FROM preventive_maintenance_plan WHERE id = ?");
+$stmt->execute([$plan_id]);
+$plan = $stmt->fetch(PDO::FETCH_ASSOC);
+$device_name = $plan['device_name'] ?? '';
+
+// Fetch serials for this device NOT already calibrated
+$stmt = $conn->prepare("SELECT Serial_number, Model, Department, Manufacturer, BMD_Code, Floor 
+    FROM Devices 
+    WHERE device_name = ? AND Serial_number NOT IN (SELECT device_serial FROM calibration WHERE plan_id = ?)");
+$stmt->execute([$device_name, $plan_id]);
+$devices = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Fetch template set
+$stmt = $conn->prepare("SELECT * FROM template_sets WHERE device_type = ? AND category = 'PM' LIMIT 1");
+$stmt->execute([$device_name]);
+$templateSet = $stmt->fetch(PDO::FETCH_ASSOC);
+
+// Fetch template items
+$stmt = $conn->prepare("SELECT * FROM template_items WHERE set_id = ? ORDER BY id");
+$stmt->execute([$templateSet['id']]);
+$templateItems = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Separate qualitative and quantitative
+$qualitativeItems = [];
+$quantitativeItems = [];
+foreach ($templateItems as $item) {
+    if (strtolower($item['type']) === 'qualitative') $qualitativeItems[] = $item;
+    else if (strtolower($item['type']) === 'quantitative') $quantitativeItems[] = $item;
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>PM Checked Certificate</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 40px;
-        }
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .logo {
-            width: 150px;
-            height: 70px;
-            object-fit: contain;
-        }
-        h2 {
-            text-align: center;
-            margin: 20px 0;
-            flex: 1;
-        }
-        .section {
-            margin-bottom: 20px;
-        }
-        .device-info {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-        }
-        .device-info div {
-            position: relative;
-        }
-        .device-info input,
-        .device-info select {
-            width: 100%;
-            border: 1px solid #ccc;
-            padding: 6px;
-            font-size: 14px;
-        }
-        .table-section {
-            margin-top: 20px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 30px;
-        }
-        th, td {
-            border: 1px solid #333;
-            padding: 8px;
-            text-align: center;
-        }
-        .status-group {
-            display: flex;
-            gap: 20px;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        .status-group label {
-            margin-right: 5px;
-            padding: 5px;
-            border-radius: 4px;
-            transition: background-color 0.2s;
-        }
-        .status-group input[type="checkbox"]:checked + span {
-            background-color: #e0f7fa;
-            border: 1px solid #0288d1;
-            padding: 3px 5px;
-            border-radius: 4px;
-        }
-        .footer-text {
-            font-weight: bold;
-            margin: 10px 0;
-        }
-        .print-button {
-            display: block;
-            margin: 30px auto;
-            padding: 10px 20px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 16px;
-            cursor: pointer;
-        }
-        /* Print-specific styles */
-        @media print {
-            .print-button,
-            input[type="file"],
-            select,
-            input[type="text"],
-            input[type="date"],
-            input[type="time"],
-            input[type="radio"],
-            input[type="checkbox"] {
-                display: none !important;
-            }
-            .device-info input,
-            .device-info select {
-                border: none;
-            }
-            .device-info div::after {
-                content: attr(data-value);
-                display: block;
-                font-size: 14px;
-                font-weight: normal;
-            }
-            .table-section td[data-value]::after {
-                content: attr(data-value);
-                display: block;
-                font-size: 14px;
-            }
-            .status-group::after {
-                content: attr(data-value);
-                display: inline-block;
-                font-size: 14px;
-                margin-left: 10px;
-            }
-        }
-    </style>
+<meta charset="UTF-8">
+<title>PM/Checked Certificate</title>
+<style>
+    body { font-family: Arial, sans-serif; padding: 30px; background-color: #fff; }
+    .certificate { width: 100%; max-width: 900px; margin: auto; border: 2px solid #000; padding: 30px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    .header { display: flex; justify-content: space-between; align-items: center; }
+    .header img { height: 60px; }
+    .title { text-align: center; font-size: 24px; font-weight: bold; margin-top: 10px; width: 100%; }
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+    .info-grid p { margin: 3px 0; font-size: 14px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; }
+    th, td { border: 1px solid #000; padding: 6px; text-align: center; }
+    th { background-color: #f8f8f8; }
+    .section-title { margin-top: 20px; font-weight: bold; text-align: center; font-size: 16px; }
+    .footer { display: flex; justify-content: space-between; margin-top: 30px; font-size: 14px; }
+    button { margin-top: 20px; padding: 10px 20px; font-size: 16px; }
+    @media print {
+        button, select, input[type="text"], input[type="radio"] { display: none !important; }
+    }
+</style>
+<script>
+function fillDeviceDetails() {
+    const data = <?= json_encode($devices) ?>;
+    const sn = document.getElementById('serial_select').value;
+    const selected = data.find(d => d.Serial_number === sn);
+    if (selected) {
+        document.getElementById('model').innerText = selected.Model;
+        document.getElementById('department').innerText = selected.Department;
+        document.getElementById('manufacturer').innerText = selected.Manufacturer;
+        document.getElementById('bmd_code').innerText = selected.BMD_Code;
+        document.getElementById('floor').innerText = selected.Floor;
+
+        const now = new Date();
+        document.getElementById('time').innerText = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+    }
+}
+</script>
 </head>
 <body>
-
-<div class="header">
-    <div>
-        <input type="file" accept="image/*" onchange="previewLogo(this, 'logo1')">
-        <img src="logo1.png" id="logo1" class="logo" alt="Logo 1">
+<div class="certificate">
+    <div class="header">
+        <img src="img/welcare.png" alt="Welcare Logo">
+        <div class="title">PM / Checked Certificate</div>
+        <img src="img/logo.png" alt="MPC Logo">
     </div>
-    <h2>PM Checked Certificate</h2>
-    <div>
-        <input type="file" accept="image/*" onchange="previewLogo(this, 'logo2')">
-        <img src="logo2.png" id="logo2" class="logo" alt="Logo 2">
-    </div>
-</div>
 
-<div class="section device-info">
-    <div data-value=""><strong>Device:</strong> <input type="text" name="device" oninput="this.parentElement.setAttribute('data-value', this.value)"></div>
-    <div data-value=""><strong>Model:</strong> <input type="text" name="model" oninput="this.parentElement.setAttribute('data-value', this.value)"></div>
-    <div data-value=""><strong>S/N:</strong> <input type="text" name="sn" oninput="this.parentElement.setAttribute('data-value', this.value)"></div>
-    <div data-value=""><strong>Code:</strong> <input type="text" name="code" oninput="this.parentElement.setAttribute('data-value', this.value)"></div>
-    <div data-value=""><strong>Department:</strong> <input type="text" name="department" oninput="this.parentElement.setAttribute('data-value', this.value)"></div>
-    <div data-value=""><strong>Floor:</strong> <input type="text" name="floor" oninput="this.parentElement.setAttribute('data-value', this.value)"></div>
-    <div data-value=""><strong>PM Date:</strong> <input type="date" name="pm_date" oninput="this.parentElement.setAttribute('data-value', this.value)"></div>
-    <div data-value=""><strong>PM Due:</strong> <input type="date" name="pm_due" oninput="this.parentElement.setAttribute('data-value', this.value)"></div>
-    <div data-value=""><strong>PM Time:</strong> <input type="time" name="pm_time" oninput="this.parentElement.setAttribute('data-value', this.value)"></div>
-    <div data-value=""><strong>Mfr:</strong> <input type="text" name="mfr" oninput="this.parentElement.setAttribute('data-value', this.value)"></div>
-    <div data-value=""><strong>Risk Level:</strong>
-        <select name="risk_level" onchange="this.parentElement.setAttribute('data-value', this.value)">
-            <option value=""></option>
-            <option value="High">High</option>
-            <option value="Medium">Medium</option>
+    <form action="save_template_results.php" method="post">
+        <input type="hidden" name="plan_id" value="<?= htmlspecialchars($plan_id) ?>">
+        <input type="hidden" name="set_id" value="<?= $templateSet['id'] ?>">
 
-        </select>
-    </div>
-    <div><strong>PMI. Freq:</strong> Every 6 months</div>
-</div>
-<div class="table-section">
-    <h3>QUALITATIVE TASKS</h3>
+        <div class="info-grid">
+            <p><strong>Device:</strong> <?= htmlspecialchars($device_name) ?></p>
+            <p><strong>PM Date:</strong> <?= date('Y-m-d') ?></p>
+            <p><strong>Department:</strong> <span id="department"></span></p>
+            <p><strong>PM Due:</strong> <?= date('Y-m-d', strtotime('+12 months')) ?></p>
+            <p><strong>Model:</strong> <span id="model"></span></p>
+            <p><strong>Floor:</strong> <span id="floor"></span></p>
+            <p>
+                <label for="serial_select"><strong>S.N.:</strong></label>
+                <select name="device_serial" id="serial_select" onchange="fillDeviceDetails()" required>
+                    <option value="">-- Select Serial --</option>
+                    <?php foreach ($devices as $dev): ?>
+                        <option value="<?= $dev['Serial_number'] ?>"><?= $dev['Serial_number'] ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </p>
+            <p><strong>Code:</strong> <span id="bmd_code"></span></p>
+            <p><strong>Time:</strong> <span id="time"></span></p>
+            <p><strong>Mfr:</strong> <span id="manufacturer"></span></p>
+            <p><strong>Risk Level:</strong> <?= $templateSet['risk_level'] ?></p>
+            <p><strong>PM Frequency:</strong> <?= $templateSet['frequency'] ?></p>
+        </div>
+
+        <div class="section-title">QUALITATIVE TASKS</div>
+        <table>
+            <thead>
+                <tr><th>Pass</th><th>Fail</th><th>Task</th><th>Pass</th><th>Fail</th><th>Task</th></tr>
+            </thead>
+            <tbody>
+                <?php for ($i = 0; $i < count($qualitativeItems); $i += 2): ?>
+                    <tr>
+                        <?php for ($j = 0; $j < 2; $j++): ?>
+                            <?php if (isset($qualitativeItems[$i + $j])): $item = $qualitativeItems[$i + $j]; ?>
+                                <td><input type="radio" name="result[<?= $item['id'] ?>]" value="Pass" required></td>
+                                <td><input type="radio" name="result[<?= $item['id'] ?>]" value="Fail"></td>
+                                <td><?= htmlspecialchars($item['item_name']) ?></td>
+                            <?php else: ?><td colspan="3"></td><?php endif; ?>
+                        <?php endfor; ?>
+                    </tr>
+                <?php endfor; ?>
+            </tbody>
+        </table>
+
+        
+        <?php if (!empty($quantitativeItems)): ?>
+    <div class="section-title">QUANTITATIVE TASKS</div>
     <table>
         <thead>
-        <tr>
-            <th>Task</th>
-            <th>Pass</th>
-            <th>Fail</th>
-        </tr>
+            <tr><th>Parameter</th><th>Set</th><th>Meas</th><th>Pass</th><th>Fail</th></tr>
         </thead>
         <tbody>
-        <tr>
-            <td>Chassis/Housing/Label</td>
-            <td data-value=""><input type="radio" name="task1" value="Pass" onchange="updateTableDataValue(this)"></td>
-            <td data-value=""><input type="radio" name="task1" value="Fail" onchange="updateTableDataValue(this)"></td>
-        </tr>
-        <tr>
-            <td>AC Plug</td>
-            <td data-value=""><input type="radio" name="task2" value="Pass" onchange="updateTableDataValue(this)"></td>
-            <td data-value=""><input type="radio" name="task2" value="Fail" onchange="updateTableDataValue(this)"></td>
-        </tr>
-        <tr>
-            <td>Mount/Line cord</td>
-            <td data-value=""><input type="radio" name="task3" value="Pass" onchange="updateTableDataValue(this)"></td>
-            <td data-value=""><input type="radio" name="task3" value="Fail" onchange="updateTableDataValue(this)"></td>
-        </tr>
-        <tr>
-            <td>Controls/Switches</td>
-            <td data-value=""><input type="radio" name="task4" value="Pass" onchange="updateTableDataValue(this)"></td>
-            <td data-value=""><input type="radio" name="task4" value="Fail" onchange="updateTableDataValue(this)"></td>
-        </tr>
-        <tr>
-            <td>Battery/Charger</td>
-            <td data-value=""><input type="radio" name="task5" value="Pass" onchange="updateTableDataValue(this)"></td>
-            <td data-value=""><input type="radio" name="task5" value="Fail" onchange="updateTableDataValue(this)"></td>
-        </tr>
-        <tr>
-            <td>Alarms: Occlusion</td>
-            <td data-value=""><input type="radio" name="task6" value="Pass" onchange="updateTableDataValue(this)"></td>
-            <td data-value=""><input type="radio" name="task6" value="Fail" onchange="updateTableDataValue(this)"></td>
-        </tr>
-        <tr>
-            <td>Alarms: Near End</td>
-            <td data-value=""><input type="radio" name="task7" value="Pass" onchange="updateTableDataValue(this)"></td>
-            <td data-value=""><input type="radio" name="task7" value="Fail" onchange="updateTableDataValue(this)"></td>
-        </tr>
-        <tr>
-            <td>Alarms: Program End</td>
-            <td data-value=""><input type="radio" name="task8" value="Pass" onchange="updateTableDataValue(this)"></td>
-            <td data-value=""><input type="radio" name="task8" value="Fail" onchange="updateTableDataValue(this)"></td>
-        </tr>
-        <tr>
-            <td>Alarms: Low Battery</td>
-            <td data-value=""><input type="radio" name="task9" value="Pass" onchange="updateTableDataValue(this)"></td>
-            <td data-value=""><input type="radio" name="task9" value="Fail" onchange="updateTableDataValue(this)"></td>
-        </tr>
-        <tr>
-            <td>Alarms: End Battery</td>
-            <td data-value=""><input type="radio" name="task10" value="Pass" onchange="updateTableDataValue(this)"></td>
-            <td data-value=""><input type="radio" name="task10" value="Fail" onchange="updateTableDataValue(this)"></td>
-        </tr>
+            <?php foreach ($quantitativeItems as $item): ?>
+                <?php for ($i = 0; $i < 3; $i++): ?>
+                    <tr>
+                        <?php if ($i === 0): ?>
+                            <td rowspan="3"><?= htmlspecialchars($item['item_name']) ?></td>
+                        <?php endif; ?>
+                        <td><input type="text" name="quantitative[<?= $item['id'] ?>][<?= $i ?>][set]"></td>
+                        <td><input type="text" name="quantitative[<?= $item['id'] ?>][<?= $i ?>][meas]"></td>
+                        <td><input type="radio" name="quantitative[<?= $item['id'] ?>][<?= $i ?>][result]" value="Pass" required></td>
+                        <td><input type="radio" name="quantitative[<?= $item['id'] ?>][<?= $i ?>][result]" value="Fail"></td>
+                    </tr>
+                <?php endfor; ?>
+            <?php endforeach; ?>
         </tbody>
     </table>
+<?php endif; ?>
+
+
+        <p><strong>Status:</strong><br>
+            <label><input type="radio" name="status" value="Passed" required> Passed</label>
+            <label><input type="radio" name="status" value="Service required"> Service Required</label>
+            <label><input type="radio" name="status" value="Removed"> Removed</label>
+        </p>
+
+        <div class="footer">
+            <div><strong>In Charge:</strong> <input type="text" name="performed_by" required></div>
+            <div><strong>Approved By:</strong> <input type="text" name="approved_by" required></div>
+            <div><strong>Checked By:</strong> <input type="text" name="checked_by" required></div>
+        </div>
+
+        <button type="submit">💾 Save & Print</button>
+    </form>
 </div>
-<div class="status-group" data-value="">
-    <strong>Status:</strong>
-    <label><input type="checkbox" name="status" value="Passed" onchange="updateStatus(this)"> <span>Passed</span></label>
-    <label><input type="checkbox" name="status" value="Service required" onchange="updateStatus(this)"> <span>Service required</span></label>
-    <label><input type="checkbox" name="status" value="Removed from service" onchange="updateStatus(this)"> <span>Removed from service</span></label>
-</div>
-
-<div class="footer-text">In Charge of PM: Eng./</div>
-<div class="footer-text">Checked By: Eng./</div>
-<div class="footer-text">Approved By: MPC</div>
-
-<button class="print-button" onclick="window.print()">🖨️ Print Certificate</button>
-
-<script>
-    function previewLogo(input, logoId) {
-        const file = input.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function (e) {
-                document.getElementById(logoId).src = e.target.result;
-            };
-            reader.readAsDataURL(file);
-        }
-    }
-
-    function updateTableDataValue(radio) {
-        // Clear data-value for both Pass and Fail cells in the same row
-        const row = radio.parentElement.parentElement;
-        const cells = row.querySelectorAll('td[data-value]');
-        cells.forEach(cell => cell.setAttribute('data-value', ''));
-        // Set data-value for the selected cell
-        radio.parentElement.setAttribute('data-value', radio.value);
-    }
-
-    function updateStatus(checkbox) {
-        // Uncheck all other checkboxes and update data-value
-        const checkboxes = document.querySelectorAll('.status-group input[type="checkbox"]');
-        checkboxes.forEach(cb => {
-            if (cb !== checkbox) {
-                cb.checked = false;
-            }
-        });
-        // Update data-value of status-group
-        const statusGroup = checkbox.parentElement.parentElement;
-        statusGroup.setAttribute('data-value', checkbox.checked ? checkbox.value : '');
-    }
-    function updateTableDataValue(radio) {
-    // تحديث data-value للخلية المحددة
-    const row = radio.parentElement.parentElement;
-    const cells = row.querySelectorAll('td[data-value]');
-    cells.forEach(cell => cell.setAttribute('data-value', ''));
-    radio.parentElement.setAttribute('data-value', radio.value);
-
-    updateOverallStatus();
-}
-
-function updateOverallStatus() {
-    // نجمع كل القيم المختارة في الجدول (Pass أو Fail)
-    const taskNames = ['task1','task2','task3','task4','task5','task6','task7','task8','task9','task10'];
-    const results = [];
-
-    for (const taskName of taskNames) {
-        const radios = document.querySelectorAll(`input[name="${taskName}"]`);
-        let selected = null;
-        radios.forEach(radio => {
-            if (radio.checked) selected = radio.value;
-        });
-        if (selected) results.push(selected);
-    }
-
-    // إذا ما فيش اختيارات، نترك الحالة فارغة
-    if (results.length === 0) {
-        setStatus('');
-        return;
-    }
-
-    // نحسب عدد Pass و Fail
-    const passCount = results.filter(r => r === 'Pass').length;
-    const failCount = results.filter(r => r === 'Fail').length;
-
-    // طبق شروطك:
-
-    if (results.length === 1) {
-        // اخترتي واحدة فقط
-        if (passCount === 1) setStatus('Passed');
-        else if (failCount === 1) setStatus('Removed from service');
-    } else {
-        // أكتر من اختيار
-        if (passCount === results.length) {
-            // كلهم Pass
-            setStatus('Passed');
-        } else if (failCount === results.length) {
-            // كلهم Fail
-            setStatus('Removed from service');
-        } else if (passCount > 0 && failCount > 0) {
-            // مزيج Pass و Fail
-            setStatus('Service required');
-        } else {
-            // حالة غير محددة
-            setStatus('');
-        }
-    }
-}
-
-function setStatus(value) {
-    const statusGroup = document.querySelector('.status-group');
-    const checkboxes = statusGroup.querySelectorAll('input[type="checkbox"]');
-
-    checkboxes.forEach(cb => {
-        cb.checked = (cb.value.toLowerCase() === value.toLowerCase());
-    });
-
-    statusGroup.setAttribute('data-value', value);
-}
-
-
-
-
-
-
-</script>
-
+<script type="text/javascript">
+		var active = document.querySelector("#navList li:nth-child(7)");
+		if (active) active.classList.add("active");
+	</script>
 </body>
 </html>

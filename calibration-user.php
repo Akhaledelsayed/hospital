@@ -32,7 +32,7 @@ if (!$hasAccess) {
     echo "<h2 style='text-align:center; color:red;'>❌ You are not assigned to this hospital.</h2>";
     exit;
 }
-    $current_month = date('n');
+    $current_month = 12;
 
     // دالة لجلب خطط الصيانة لهذا الشهر
     
@@ -234,6 +234,10 @@ if (!$hasAccess) {
         <p style="color:#888;">There is No Devices Need To calibrated This Month.</p>
     <?php endif; ?>
 </div>
+<script type="text/javascript">
+		var active = document.querySelector("#navList li:nth-child(7)");
+		if (active) active.classList.add("active");
+	</script>
 </body>
 </html>
 <?php
