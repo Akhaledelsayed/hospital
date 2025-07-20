@@ -46,7 +46,7 @@
 <li>
 					<a href="calibration-user.php">
 						<i class="fa fa-tachometer" aria-hidden="true"></i>
-						<span>Calibration </span>
+						<span>Preventive Maintenance</span>
 					</a>
 				</li>
 <li>
@@ -56,16 +56,12 @@
 					</a>
 				</li>
 
-				<li>
-					<a href="report-form.php">
-						<i class="fa fa-folder" aria-hidden="true"></i>
-						<span>reports</span>
-					</a>
-				</li>
+				
+
 <li>
 					<a href="manage-report.php">
 						<i class="fa fa-folder" aria-hidden="true"></i>
-						<span>reports manage</span>
+						<span>reports</span>
 					</a>
 				</li>
 				
@@ -115,7 +111,7 @@
 <li>
 					<a href="calibration-user.php">
 						<i class="fa fa-folder" aria-hidden="true"></i>
-						<span>Calibration</span>
+						<span>Preventive Maintenance</span>
 					</a>
 				</li>
 				<li>
@@ -125,16 +121,11 @@
 					</a>
 				</li>
 
-				<li>
-					<a href="report-form.php">
-						<i class="fa fa-folder" aria-hidden="true"></i>
-						<span>reports</span>
-					</a>
-				</li>
+				
 <li>
 					<a href="manage-report.php">
 						<i class="fa fa-folder" aria-hidden="true"></i>
-						<span>reports manage</span>
+						<span>reports</span>
 					</a>
 				</li>
 

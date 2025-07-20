@@ -223,7 +223,7 @@ foreach ($fields as $name => $label) {
 	</div>
 
 	<script type="text/javascript">
-		var active = document.querySelector("#navList li:nth-child(2)");
+		var active = document.querySelector("#navList li:nth-child(4)");
 		if (active) active.classList.add("active");
 	</script>
 </body>

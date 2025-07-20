@@ -231,7 +231,7 @@ if (!$hasAccess) {
 	</div>
 
 	<script type="text/javascript">
-		var active = document.querySelector("#navList li:nth-child(2)");
+		var active = document.querySelector("#navList li:nth-child(8)");
 		if (active) active.classList.add("active");
 		const deviceData = <?php
         $stmt = $conn->prepare("SELECT device_name, serial_number FROM devices  WHERE hospital_code = $hospital_code");
@@ -263,5 +263,6 @@ if (!$hasAccess) {
         }
     });
 	</script>
+	
 </body>
 </html>
