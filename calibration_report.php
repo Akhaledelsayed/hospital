@@ -46,6 +46,16 @@ $remaining = $total_devices - $calibrated_count;
             background: #f2f2f2;
             padding: 20px;
         }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            width: 150px;
+            height: 70px;
+            object-fit: contain;
+        }
         .report-box {
             background: white;
             padding: 30px;
@@ -81,6 +91,18 @@ $remaining = $total_devices - $calibrated_count;
 <body>
 
 <div class="report-box">
+    
+<div class="header">
+    <div>
+        <input type="file" accept="image/*" onchange="previewLogo(this, 'logo1')">
+        <img src="logo1.png" id="logo1" class="logo" alt="Logo 1">
+    </div>
+    <h2>PM Checked Certificate</h2>
+    <div>
+        <input type="file" accept="image/*" onchange="previewLogo(this, 'logo2')">
+        <img src="logo2.png" id="logo2" class="logo" alt="Logo 2">
+    </div>
+</div>
     <h2>Calibration Summary - <?= date('F') ?></h2>
 
     <table>
@@ -109,6 +131,20 @@ $remaining = $total_devices - $calibrated_count;
 <!-- Chart.js CDN -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+    
+  
+    
+    function previewLogo(input, logoId) {
+        const file = input.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                document.getElementById(logoId).src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
     const ctx = document.getElementById('calibrationChart').getContext('2d');
     const chart = new Chart(ctx, {
         type: 'line',

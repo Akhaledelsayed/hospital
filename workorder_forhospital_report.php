@@ -73,7 +73,16 @@ $completedPercentage = ($data['total'] ?? 0) > 0 ? round(($data['completed'] / $
             border-collapse: collapse;
             margin-top: 15px;
         }
-
+.header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            width: 150px;
+            height: 70px;
+            object-fit: contain;
+        }
         table, th, td {
             border: 1px solid #dee2e6;
         }
@@ -104,6 +113,18 @@ $completedPercentage = ($data['total'] ?? 0) > 0 ? round(($data['completed'] / $
 <body>
 
 <div class="info-box">
+    
+<div class="header">
+    <div>
+        <input type="file" accept="image/*" onchange="previewLogo(this, 'logo1')">
+        <img src="logo1.png" id="logo1" class="logo" alt="Logo 1">
+    </div>
+    <h2>PM Checked Certificate</h2>
+    <div>
+        <input type="file" accept="image/*" onchange="previewLogo(this, 'logo2')">
+        <img src="logo2.png" id="logo2" class="logo" alt="Logo 2">
+    </div>
+</div>
     <h2>Work Orders Report</h2>
     <p><strong>Period:</strong> <?= htmlspecialchars($start_date) ?> to <?= htmlspecialchars($end_date) ?></p>
     <p><strong>Hospital Code:</strong> <?= htmlspecialchars($hospital_code) ?></p>
@@ -147,6 +168,17 @@ $completedPercentage = ($data['total'] ?? 0) > 0 ? round(($data['completed'] / $
 <canvas id="reportChart" width="600" height="300"></canvas>
 
 <script>
+    function previewLogo(input, logoId) {
+        const file = input.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                document.getElementById(logoId).src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
 const ctx = document.getElementById('reportChart').getContext('2d');
 new Chart(ctx, {
     type: 'bar',
